@@ -62,7 +62,7 @@ public class JwtService {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (Exception e) {
-            throw new CustomException(HttpStatus.UNAUTHORIZED, "Token no valido");
+            throw new CustomException(HttpStatus.UNAUTHORIZED, "Invalid token");
         }
     }
 
@@ -71,7 +71,7 @@ public class JwtService {
             final Claims claims = getAllClaims(token);
             return claimsResolver.apply(claims);
         } catch (Exception e) {
-            throw new CustomException(HttpStatus.UNAUTHORIZED, "Token no valido");
+            throw new CustomException(HttpStatus.UNAUTHORIZED, "Invalid token");
         }
     }
 
@@ -82,11 +82,5 @@ public class JwtService {
     private boolean isTokenExpired(String token) {
         return getExpiration(token).before(new Date());
     }
-
-//    public UserDetails getUserDetailsFromToken(String token) {
-//        Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
-//        String username = claims.getSubject();
-//        return new User(username, "", new ArrayList<>()); // Cambia esto según tu lógica de usuario
-//    }
 
 }

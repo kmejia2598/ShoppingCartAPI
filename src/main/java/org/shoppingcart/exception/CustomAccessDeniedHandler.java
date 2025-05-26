@@ -22,8 +22,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("error", "Acceso denegado");
-        responseBody.put("message", "No tienes permisos para acceder a este recurso.");
+        responseBody.put("error", "Access denied");
+        responseBody.put("message", "You do not have permission to access this resource.");
         responseBody.put("status", HttpServletResponse.SC_FORBIDDEN);
 
         response.getWriter().write(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(responseBody));

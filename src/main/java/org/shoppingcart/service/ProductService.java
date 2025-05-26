@@ -26,13 +26,9 @@ public class ProductService {
         ProductDTO[] products = response.getBody();
 
         if (products == null || products.length == 0) {
-            throw new NotFoundException("No hay productos disponibles");
+            throw new NotFoundException("There are no products available.");
         }
         return Arrays.asList(products);
-    }
-
-    public Collection<ProductDTO> getAllProducts(){
-        return memoryDB.getAllProducts();
     }
 
     public ProductDTO getProductById(Integer id){
@@ -41,12 +37,16 @@ public class ProductService {
             ProductDTO product = response.getBody();
 
             if (product == null) {
-                throw new NotFoundException("Producto con ID " + id + " no encontrado");
+                throw new NotFoundException("Product with ID " + id + " not found");
             }
             return product;
         } catch (HttpClientErrorException.NotFound e) {
-            throw new NotFoundException("Producto con ID " + id + " no encontrado");
+            throw new NotFoundException("Product with ID " + id + " not found");
         }
+    }
+
+    public Collection<ProductDTO> getAllProducts(){
+        return memoryDB.getAllProducts();
     }
 
     public ProductDTO getProductByIdMemory(Integer id){
@@ -54,8 +54,19 @@ public class ProductService {
         if(product.isPresent()){
             return product.get();
         }else {
-            throw new NotFoundException("Producto con ID " + id + " no encontrado");
+            throw new NotFoundException("Product with ID " + id + " not found");
         }
     }
 
+    public ProductDTO createProductMemory(ProductDTO product){
+        return memoryDB.addProduct(product);
+    }
+
+    public ProductDTO updateProductMemory(ProductDTO product){
+        return memoryDB.updateProduct(product);
+    }
+
+    public boolean deleteProductMemory(Integer id){
+        return memoryDB.deleteProduct(id);
+    }
 }

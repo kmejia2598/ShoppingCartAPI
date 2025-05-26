@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 @Component
 @RequiredArgsConstructor
@@ -75,6 +74,21 @@ public class MemoryDB {
         product.setId(productIdSequence++);
         products.put(product.getId(), product);
         return product;
+    }
+
+
+    public ProductDTO updateProduct(ProductDTO product) {
+        products.put(product.getId(), product);
+        return product;
+    }
+
+    public boolean deleteProduct(Integer id) {
+        ProductDTO product = products.get(id);
+        if (product == null) {
+            throw new RuntimeException("Product not found");
+        }
+        products.remove(id);
+        return true;
     }
 
     public OrderDTO addOrder(OrderDTO order) {

@@ -5,11 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.shoppingcart.dto.ClientDTO;
-import org.shoppingcart.exception.CustomException;
-import org.shoppingcart.service.ClientService;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,6 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
         try {
             final String token = getTokenFromRequest(request);
             final String username;
@@ -56,7 +53,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             }
         } catch (Exception e) {
-            throw new CustomException(HttpStatus.UNAUTHORIZED, "Acceso denegado");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            sendErrorResponse(response, "Access denied");
         }
 
         filterChain.doFilter(request, response);
@@ -69,5 +67,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return authHeader.substring(7);
         }
         return null;
+    }
+
+    /**
+     * METHOD TO RETURN ERROR MESSAGES THAT HAPPEN DURING THE FILTER
+     */
+    private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.getWriter().write(message);
+        response.getWriter().flush();
     }
 }

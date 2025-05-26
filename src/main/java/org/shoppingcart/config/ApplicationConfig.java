@@ -50,8 +50,8 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailService() {
         return username -> getClientByName(username)
-                .map(ClientDetails::new) // Aquí está el truco: convertir el ClientDTO a ClientDetails
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+                .map(ClientDetails::new)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found."));
     }
 
     private Optional<ClientDTO> getClientByName(String username) {

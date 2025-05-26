@@ -39,6 +39,8 @@ public class ClientController {
         return ResponseEntity.ok(clientService.getClientByIdMemory(id));
     }
 
+
+
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(clientService.login(request));

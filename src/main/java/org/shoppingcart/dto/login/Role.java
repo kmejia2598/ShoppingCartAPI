@@ -13,16 +13,16 @@ import static org.shoppingcart.dto.login.Permission.*;
 public enum Role {
 
     ADMIN(Set.of(
-            ADMIN_LEER,
-            ADMIN_CREAR,
-            ADMIN_MODIFICAR,
-            ADMIN_BUSCAR
+            ADMIN_READ,
+            ADMIN_CREATE,
+            ADMIN_UPDATE,
+            ADMIN_SEARCH
     )),
     USER(Set.of(
-            USER_LEER,
-            USER_CREAR,
-            USER_MODIFICAR,
-            USER_BUSCAR
+            USER_READ,
+            USER_CREATE,
+            USER_UPDATE,
+            USER_SEARCH
     )),
     ;
 
