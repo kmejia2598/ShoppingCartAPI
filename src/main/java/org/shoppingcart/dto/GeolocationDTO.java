@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class GeolocationDTO {
     private String lat;
-    private String longitude;
+    private String Long;
 }
