@@ -15,18 +15,27 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    /**
+     * Get list of Orders stored in memory
+     */
     @GetMapping("/all/in-memory")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<?> ordersAllMemory() {
         return ResponseEntity.ok(orderService.getAllOrdersMemory());
     }
 
+    /**
+     * Get order by Id in memory
+     */
     @GetMapping("/get/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<?> orderByIdMemory(@PathVariable Integer id) {
         return ResponseEntity.ok(orderService.getOrderByIdMemory(id));
     }
 
+    /**
+     * Add a new order in memory
+     */
     @PostMapping("/add/in-memory")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<?> addOrderMemory(@RequestBody OrderDTO order) {
