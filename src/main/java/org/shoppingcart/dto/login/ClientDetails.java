@@ -5,6 +5,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Collections;
 
 public class ClientDetails implements UserDetails {
 
@@ -16,7 +17,7 @@ public class ClientDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return client.getRole().getAuthorities();
+        return client.getRole() != null ? client.getRole().getAuthorities() : Collections.emptyList();
     }
 
     @Override

@@ -6,15 +6,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.shoppingcart.dto.ClientDTO;
 import org.shoppingcart.exception.CustomException;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +19,7 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
+
     private static final String SECRET_KEY = "543a6670772d38275825553f7330357a5d5c4548253170462b5153433b412d58";
 
     public String getToken(UserDetails user) {
@@ -62,7 +60,7 @@ public class JwtService {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (Exception e) {
-            throw new CustomException(HttpStatus.UNAUTHORIZED, "Token no valido");
+            throw new CustomException(HttpStatus.UNAUTHORIZED, "Invalid token");
         }
     }
 
@@ -71,7 +69,7 @@ public class JwtService {
             final Claims claims = getAllClaims(token);
             return claimsResolver.apply(claims);
         } catch (Exception e) {
-            throw new CustomException(HttpStatus.UNAUTHORIZED, "Token no valido");
+            throw new CustomException(HttpStatus.UNAUTHORIZED, "Invalid token");
         }
     }
 
@@ -82,11 +80,5 @@ public class JwtService {
     private boolean isTokenExpired(String token) {
         return getExpiration(token).before(new Date());
     }
-
-//    public UserDetails getUserDetailsFromToken(String token) {
-//        Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
-//        String username = claims.getSubject();
-//        return new User(username, "", new ArrayList<>()); // Cambia esto según tu lógica de usuario
-//    }
 
 }

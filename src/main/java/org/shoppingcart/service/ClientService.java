@@ -57,11 +57,11 @@ public class ClientService {
             ClientDTO client = response.getBody();
 
             if (client == null) {
-                throw new NotFoundException("Producto con ID " + id + " no encontrado");
+                throw new NotFoundException("Product with ID " + id + " not found");
             }
             return client;
         } catch (HttpClientErrorException.NotFound e) {
-            throw new NotFoundException("Producto con ID " + id + " no encontrado");
+            throw new NotFoundException("Product with ID " + id + " not found");
         }
     }
 
@@ -74,7 +74,7 @@ public class ClientService {
         if(client.isPresent()){
             return client.get();
         }else {
-            throw new NotFoundException("Cliente con ID " + id + " no encontrado");
+            throw new NotFoundException("Client with ID " + id + " not found");
         }
     }
 
@@ -82,19 +82,19 @@ public class ClientService {
         usuario = findByNombre(request.getUsername());
         //validamos que el usuario exista y retorne
         if (usuario == null) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "El usuario no existe");
+            throw new CustomException(HttpStatus.BAD_REQUEST, "The user does not exist.");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "La contraseña no coincide");
+            throw new CustomException(HttpStatus.BAD_REQUEST, "The password does not match.");
         }
 
-        //autenticacion y retorno de datos del usuario
+        //authentication and return of user data
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-        UserDetails user = (UserDetails) findByNombre(request.getUsername());
-        //generacion del token
+        UserDetails user = findByNombre(request.getUsername());
+        //token generation
         String token = jwtService.getToken(user);
-        //retorno de datos
+        //data return
         return AuthResponse.builder()
                 .userName(usuario.getUsername())
                 .firstname(usuario.getName().getFirstname())

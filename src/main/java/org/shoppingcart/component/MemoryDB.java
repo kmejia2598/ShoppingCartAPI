@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 @Component
 @RequiredArgsConstructor
@@ -35,6 +34,9 @@ public class MemoryDB {
     private static final Logger logger = LogManager.getLogger(MemoryDB.class);
 
 
+    /** ************************************************* *
+     ** * Start methods and functions for clients/users * *
+     ** ************************************************* */
     public void addAllClients() {
         ResponseEntity<ClientDTO[]> response = restTemplate.getForEntity("https://fakestoreapi.com/users", ClientDTO[].class);
         ClientDTO[] Listclients = response.getBody();
@@ -52,6 +54,35 @@ public class MemoryDB {
         }
     }
 
+    public Optional<ClientDTO> getClientById(Integer id) {
+        return Optional.ofNullable(clients.get(id));
+    }
+
+    public ClientDTO getClientByName(String username) {
+        return clients.values().stream()
+                .filter(client -> client.getUsername().equals(username))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public Collection<ClientDTO> getAllClients() {
+        if (!clients.isEmpty()) {
+            return clients.values();
+        } else {
+            throw new NotFoundException("There are no registered customers/users in the database.");
+        }
+    }
+
+    /** ************************************************ *
+     ** * Ends methods and functions for clients/users * *
+     ** ************************************************ */
+
+    //////////////////////////////////////////////////////////////////////////
+
+    /** ******************************************** *
+     ** * Start methods and functions for products * *
+     ** ******************************************** */
+
     public void addAllProducts() {
         ResponseEntity<ProductDTO[]> response = restTemplate.getForEntity("https://fakestoreapi.com/products", ProductDTO[].class);
         ProductDTO[] ListProducts = response.getBody();
@@ -65,17 +96,48 @@ public class MemoryDB {
         }
     }
 
-    public ClientDTO addClient(ClientDTO cliente) {
-        cliente.setId(clientIdSequence++);
-        clients.put(cliente.getId(), cliente);
-        return cliente;
-    }
-
     public ProductDTO addProduct(ProductDTO product) {
         product.setId(productIdSequence++);
         products.put(product.getId(), product);
         return product;
     }
+
+
+    public ProductDTO updateProduct(ProductDTO product) {
+        products.put(product.getId(), product);
+        return product;
+    }
+
+    public boolean deleteProduct(Integer id) {
+        ProductDTO product = products.get(id);
+        if (product == null) {
+            throw new RuntimeException("Product not found");
+        }
+        products.remove(id);
+        return true;
+    }
+
+    public Optional<ProductDTO> getProductById(Integer id) {
+        return Optional.ofNullable(products.get(id));
+    }
+
+    public Collection<ProductDTO> getAllProducts() {
+        if (!products.isEmpty()) {
+            return products.values();
+        } else {
+            throw new NotFoundException("There are no registered products in the database.");
+        }
+    }
+
+    /** ******************************************* *
+     ** * Ends methods and functions for products * *
+     ** ******************************************* */
+
+    //////////////////////////////////////////////////////////////////////////
+
+    /** ****************************************** *
+     ** * Start methods and functions for orders * *
+     ** ****************************************** */
 
     public OrderDTO addOrder(OrderDTO order) {
         Optional<ClientDTO> client = getClientById(order.getUserId());
@@ -89,64 +151,16 @@ public class MemoryDB {
         }
     }
 
-    public PaymentResponseDTO addPayment(PaymentRequestDTO payment) {
-        Optional<OrderDTO> order = getOrderById(payment.getOrderId());
-        if (order.isPresent()) {
-            return switch (payment.getPaymentMethod()) {
-                case "CREDIT_CARD" -> processCreditCardPayment(payment, order.get());
-                case "PAYPAL" -> processPayPalPayment(payment, order.get());
-                default -> throw new NotFoundException(payment.getPaymentMethod());
-            };
-        } else {
-            throw new NotFoundException("The order indicated in the payment does not exist.");
-        }
-    }
-
-    public void addPaymentMemory(PaymentRequestDTO payment) {
-        payment.setId(paymentIdSequence++);
-        payments.put(payment.getId(), payment);
-    }
-
-    public Optional<ProductDTO> getProductById(Integer id) {
-        return Optional.ofNullable(products.get(id));
-    }
-
     public Optional<OrderDTO> getOrderById(Integer id) {
         return Optional.ofNullable(orders.get(id));
     }
 
-    public Optional<ClientDTO> getClientById(Integer id) {
-        return Optional.ofNullable(clients.get(id));
-    }
-
-    public ClientDTO getClientByName(String username) {
-        return clients.values().stream()
-                .filter(client -> client.getUsername().equals(username))
-                .findFirst()
-                .orElse(null);
-    }
 
     public Collection<OrderDTO> getAllOrders() {
         if (!orders.isEmpty()) {
             return orders.values();
         } else {
             throw new NotFoundException("There are no registered orders in the database.");
-        }
-    }
-
-    public Collection<ClientDTO> getAllClients() {
-        if (!clients.isEmpty()) {
-            return clients.values();
-        } else {
-            throw new NotFoundException("There are no registered customers/users in the database.");
-        }
-    }
-
-    public Collection<ProductDTO> getAllProducts() {
-        if (!products.isEmpty()) {
-            return products.values();
-        } else {
-            throw new NotFoundException("There are no registered products in the database.");
         }
     }
 
@@ -166,6 +180,37 @@ public class MemoryDB {
         }
 
         return total;
+    }
+
+    /** ***************************************** *
+     ** * Ends methods and functions for orders * *
+     ** ***************************************** */
+
+    //////////////////////////////////////////////////////////////////////////
+
+    /** ******************************************** *
+     ** * Start methods and functions for payments * *
+     ** ******************************************** */
+    public PaymentResponseDTO addPayment(PaymentRequestDTO payment) {
+        Optional<OrderDTO> order = getOrderById(payment.getOrderId());
+        if (order.isPresent()) {
+            if(Boolean.FALSE.equals(order.get().getPaymentStatus())){
+                return switch (payment.getPaymentMethod()) {
+                    case "CREDIT_CARD" -> processCreditCardPayment(payment, order.get());
+                    case "PAYPAL" -> processPayPalPayment(payment, order.get());
+                    default -> throw new NotFoundException(payment.getPaymentMethod());
+                };
+            }else {
+                throw new NotFoundException("The order is already cancelled.");
+            }
+        } else {
+            throw new NotFoundException("The order indicated in the payment does not exist.");
+        }
+    }
+
+    public void addPaymentMemory(PaymentRequestDTO payment) {
+        payment.setId(paymentIdSequence++);
+        payments.put(payment.getId(), payment);
     }
 
     private PaymentResponseDTO processCreditCardPayment(PaymentRequestDTO request, OrderDTO order) {
@@ -313,4 +358,8 @@ public class MemoryDB {
         }
         return (sum % 10 == 0);
     }
+
+    /** ******************************************* *
+     ** * Ends methods and functions for payments * *
+     ** ******************************************* */
 }

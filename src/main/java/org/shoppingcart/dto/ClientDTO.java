@@ -21,7 +21,7 @@ public class ClientDTO implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return role.getAuthorities();
+        return role != null ? role.getAuthorities() : Collections.emptyList();
     }
 
     @Override
