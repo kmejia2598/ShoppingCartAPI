@@ -1,4 +1,4 @@
-package org.shoppingcart.dto;
+package org.shoppingcart.dto.order;
 
 import lombok.Data;
 
@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 public class OrderDTO {
-    private Integer id;
+    private Integer Id;
     private Integer userId;
     private LocalDate date;
     private BigDecimal orderTotal;

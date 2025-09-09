@@ -1,4 +1,4 @@
-package org.shoppingcart.dto;
+package org.shoppingcart.dto.payment;
 
 import lombok.Builder;
 import lombok.Data;

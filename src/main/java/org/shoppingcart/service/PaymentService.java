@@ -2,8 +2,8 @@ package org.shoppingcart.service;
 
 import lombok.RequiredArgsConstructor;
 import org.shoppingcart.component.MemoryDB;
-import org.shoppingcart.dto.PaymentRequestDTO;
-import org.shoppingcart.dto.PaymentResponseDTO;
+import org.shoppingcart.dto.payment.PaymentRequestDTO;
+import org.shoppingcart.dto.payment.PaymentResponseDTO;
 import org.springframework.stereotype.Service;
 
 @Service

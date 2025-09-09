@@ -2,9 +2,18 @@ package org.shoppingcart.component;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.shoppingcart.dto.*;
+import org.shoppingcart.dto.client.ClientDTO;
+import org.shoppingcart.dto.payment.CreditCardDetailsDTO;
 import org.shoppingcart.dto.login.Role;
+import org.shoppingcart.dto.order.OrderDTO;
+import org.shoppingcart.dto.order.OrderDetailDTO;
+import org.shoppingcart.dto.order.OrderProductDTO;
+import org.shoppingcart.dto.payment.PayPalPaymentRequestDTO;
+import org.shoppingcart.dto.payment.PaymentRequestDTO;
+import org.shoppingcart.dto.payment.PaymentResponseDTO;
+import org.shoppingcart.dto.product.ProductDTO;
 import org.shoppingcart.exception.NotFoundException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -33,19 +42,24 @@ public class MemoryDB {
     private final Map<Integer, ProductDTO> products = new HashMap<>();
     private static final Logger logger = LogManager.getLogger(MemoryDB.class);
 
+    @Value("${external.api.fakestore.url}")
+    private String urlAPI;
 
-    /** ************************************************* *
-     ** * Start methods and functions for clients/users * *
-     ** ************************************************* */
+
+    /**
+     * ************************************************ *
+     * * * Start methods and functions for clients/users * *
+     * * *************************************************
+     */
     public void addAllClients() {
-        ResponseEntity<ClientDTO[]> response = restTemplate.getForEntity("https://fakestoreapi.com/users", ClientDTO[].class);
+        ResponseEntity<ClientDTO[]> response = restTemplate.getForEntity(urlAPI + "/users", ClientDTO[].class);
         ClientDTO[] Listclients = response.getBody();
 
         if (Listclients == null || Listclients.length == 0) {
             logger.info("There are no clients available in API");
         } else {
             clientIdSequence = Listclients.length;
-            clients.clear(); // Clear the map before adding new data (optional)
+            clients.clear();
             Arrays.stream(Listclients).forEach(client -> {
                 client.setPassword(passwordEncoder.encode(client.getPassword()));
                 client.setRole(client.getUsername().equals("kevinryan") ? Role.ADMIN : Role.USER);
@@ -79,12 +93,14 @@ public class MemoryDB {
 
     //////////////////////////////////////////////////////////////////////////
 
-    /** ******************************************** *
-     ** * Start methods and functions for products * *
-     ** ******************************************** */
+    /**
+     * ******************************************* *
+     * * * Start methods and functions for products * *
+     * * ********************************************
+     */
 
     public void addAllProducts() {
-        ResponseEntity<ProductDTO[]> response = restTemplate.getForEntity("https://fakestoreapi.com/products", ProductDTO[].class);
+        ResponseEntity<ProductDTO[]> response = restTemplate.getForEntity(urlAPI + "/products", ProductDTO[].class);
         ProductDTO[] ListProducts = response.getBody();
 
         if (ListProducts == null || ListProducts.length == 0) {
@@ -135,17 +151,24 @@ public class MemoryDB {
 
     //////////////////////////////////////////////////////////////////////////
 
-    /** ****************************************** *
-     ** * Start methods and functions for orders * *
-     ** ****************************************** */
+    /**
+     * ***************************************** *
+     * * * Start methods and functions for orders * *
+     * * ******************************************
+     */
 
-    public OrderDTO addOrder(OrderDTO order) {
+    public OrderDTO addOrder(OrderDetailDTO order) {
         Optional<ClientDTO> client = getClientById(order.getUserId());
         if (client.isPresent()) {
-            order.setOrderTotal(calculateOrderTotal(order));
-            order.setId(orderIdSequence++);
-            orders.put(order.getId(), order);
-            return order;
+            OrderDTO orderDTO = new OrderDTO();
+            orderDTO.setId(orderIdSequence++);
+            orderDTO.setUserId(order.getUserId());
+            orderDTO.setDate(order.getDate());
+            orderDTO.setOrderTotal(calculateOrderTotal(order));
+            orderDTO.setProducts(order.getProducts());
+
+            orders.put(orderDTO.getId(), orderDTO);
+            return orderDTO;
         } else {
             throw new NotFoundException("The customer indicated in the order does not exist.");
         }
@@ -165,42 +188,48 @@ public class MemoryDB {
     }
 
 
-    public BigDecimal calculateOrderTotal(OrderDTO order) {
+    public BigDecimal calculateOrderTotal(OrderDetailDTO order) {
         List<OrderProductDTO> productDTOList = order.getProducts();
         BigDecimal total = BigDecimal.ZERO;
         for (OrderProductDTO product : productDTOList) {
             ProductDTO foundProduct = getProductById(product.getProductId())
                     .orElseThrow(() -> new NotFoundException("Product not found: " + product.getProductId()));
 
-            BigDecimal productPrice = BigDecimal.valueOf(foundProduct.getPrice());
-            BigDecimal quantity = BigDecimal.valueOf(product.getQuantity());
-            BigDecimal subtotal = productPrice.multiply(quantity);
+            if (product.getQuantity() > 0) {
+                BigDecimal productPrice = BigDecimal.valueOf(foundProduct.getPrice());
+                BigDecimal quantity = BigDecimal.valueOf(product.getQuantity());
+                BigDecimal subtotal = productPrice.multiply(quantity);
 
-            total = total.add(subtotal);
+                total = total.add(subtotal);
+            } else {
+                throw new NotFoundException("La cantidad no debe ser negativa");
+            }
         }
 
         return total;
     }
 
-    /** ***************************************** *
-     ** * Ends methods and functions for orders * *
-     ** ***************************************** */
+/** ***************************************** *
+ ** * Ends methods and functions for orders * *
+ ** ***************************************** */
 
-    //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
-    /** ******************************************** *
-     ** * Start methods and functions for payments * *
-     ** ******************************************** */
+    /**
+     * ******************************************* *
+     * * * Start methods and functions for payments * *
+     * * ********************************************
+     */
     public PaymentResponseDTO addPayment(PaymentRequestDTO payment) {
         Optional<OrderDTO> order = getOrderById(payment.getOrderId());
         if (order.isPresent()) {
-            if(Boolean.FALSE.equals(order.get().getPaymentStatus())){
+            if (Boolean.FALSE.equals(order.get().getPaymentStatus())) {
                 return switch (payment.getPaymentMethod()) {
                     case "CREDIT_CARD" -> processCreditCardPayment(payment, order.get());
                     case "PAYPAL" -> processPayPalPayment(payment, order.get());
                     default -> throw new NotFoundException(payment.getPaymentMethod());
                 };
-            }else {
+            } else {
                 throw new NotFoundException("The order is already cancelled.");
             }
         } else {
@@ -242,7 +271,11 @@ public class MemoryDB {
     private PaymentResponseDTO processPayPalPayment(PaymentRequestDTO request, OrderDTO order) {
         //Validate PayPal-specific data
         if (request.getPaypalEmail() == null || request.getPaypalEmail().isBlank()) {
-            throw new NotFoundException("PayPal email is required");
+            throw new NotFoundException("Email is required");
+        }else {
+            if (!request.getPaypalEmail().matches("^[A-Za-z0-9._%+-]+@(gmail\\.com|yahoo\\.com|outlook\\.com|hotmail\\.com)$")) {
+                throw new NotFoundException("Email format is invalid");
+            }
         }
 
         //Create a request to the PayPal API
@@ -359,7 +392,7 @@ public class MemoryDB {
         return (sum % 10 == 0);
     }
 
-    /** ******************************************* *
-     ** * Ends methods and functions for payments * *
-     ** ******************************************* */
+/** ******************************************* *
+ ** * Ends methods and functions for payments * *
+ ** ******************************************* */
 }

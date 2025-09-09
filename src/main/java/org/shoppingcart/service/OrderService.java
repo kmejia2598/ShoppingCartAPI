@@ -2,7 +2,8 @@ package org.shoppingcart.service;
 
 import lombok.RequiredArgsConstructor;
 import org.shoppingcart.component.MemoryDB;
-import org.shoppingcart.dto.OrderDTO;
+import org.shoppingcart.dto.order.OrderDTO;
+import org.shoppingcart.dto.order.OrderDetailDTO;
 import org.shoppingcart.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,7 @@ public class OrderService {
 
     private final MemoryDB memoryDB;
 
-    public OrderDTO addOrderMemory(OrderDTO order){
+    public OrderDTO addOrderMemory(OrderDetailDTO order){
         return memoryDB.addOrder(order);
     }
 

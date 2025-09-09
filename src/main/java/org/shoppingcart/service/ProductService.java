@@ -2,8 +2,9 @@ package org.shoppingcart.service;
 
 import lombok.RequiredArgsConstructor;
 import org.shoppingcart.component.MemoryDB;
-import org.shoppingcart.dto.ProductDTO;
+import org.shoppingcart.dto.product.ProductDTO;
 import org.shoppingcart.exception.NotFoundException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -20,9 +21,12 @@ public class ProductService {
 
     private final RestTemplate restTemplate;
     private final MemoryDB memoryDB;
+    @Value("${external.api.fakestore.url}")
+    private String urlAPI;
+
 
     public List<ProductDTO> getProducts() {
-        ResponseEntity<ProductDTO[]> response = restTemplate.getForEntity("https://fakestoreapi.com/products", ProductDTO[].class);
+        ResponseEntity<ProductDTO[]> response = restTemplate.getForEntity(urlAPI + "/products", ProductDTO[].class);
         ProductDTO[] products = response.getBody();
 
         if (products == null || products.length == 0) {
@@ -31,9 +35,9 @@ public class ProductService {
         return Arrays.asList(products);
     }
 
-    public ProductDTO getProductById(Integer id){
+    public ProductDTO getProductById(Integer id) {
         try {
-            ResponseEntity<ProductDTO> response = restTemplate.getForEntity("https://fakestoreapi.com/products/" + id, ProductDTO.class);
+            ResponseEntity<ProductDTO> response = restTemplate.getForEntity(urlAPI + "/products/" + id, ProductDTO.class);
             ProductDTO product = response.getBody();
 
             if (product == null) {
@@ -45,28 +49,28 @@ public class ProductService {
         }
     }
 
-    public Collection<ProductDTO> getAllProducts(){
+    public Collection<ProductDTO> getAllProducts() {
         return memoryDB.getAllProducts();
     }
 
-    public ProductDTO getProductByIdMemory(Integer id){
+    public ProductDTO getProductByIdMemory(Integer id) {
         Optional<ProductDTO> product = memoryDB.getProductById(id);
-        if(product.isPresent()){
+        if (product.isPresent()) {
             return product.get();
-        }else {
+        } else {
             throw new NotFoundException("Product with ID " + id + " not found");
         }
     }
 
-    public ProductDTO createProductMemory(ProductDTO product){
+    public ProductDTO createProductMemory(ProductDTO product) {
         return memoryDB.addProduct(product);
     }
 
-    public ProductDTO updateProductMemory(ProductDTO product){
+    public ProductDTO updateProductMemory(ProductDTO product) {
         return memoryDB.updateProduct(product);
     }
 
-    public boolean deleteProductMemory(Integer id){
+    public boolean deleteProductMemory(Integer id) {
         return memoryDB.deleteProduct(id);
     }
 }

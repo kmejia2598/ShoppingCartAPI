@@ -12,7 +12,7 @@ public class ShoppingCartApplication {
         SpringApplication.run(ShoppingCartApplication.class, args);
     }
 
-    /** Definition of a CommandLineRunner bean to store client information directly from the https://fakestoreapi.com/ API once the Spring application context is fully initialized. */
+    /** Definition of a CommandLineRunner bean to store client information directly from the External API once the Spring application context is fully initialized. */
     @Bean
     public CommandLineRunner commandLineRunner(MemoryDB memoryDB) {
         return args -> {

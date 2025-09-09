@@ -2,7 +2,7 @@ package org.shoppingcart.config;
 
 import lombok.RequiredArgsConstructor;
 import org.shoppingcart.component.MemoryDB;
-import org.shoppingcart.dto.ClientDTO;
+import org.shoppingcart.dto.client.ClientDTO;
 import org.shoppingcart.dto.login.ClientDetails;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -11,7 +11,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

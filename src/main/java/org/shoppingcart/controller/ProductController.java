@@ -1,10 +1,13 @@
 package org.shoppingcart.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.shoppingcart.dto.ProductDTO;
+import org.shoppingcart.dto.product.ProductDTO;
 import org.shoppingcart.service.ProductService;
+import org.shoppingcart.utils.GeneralMethos;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
 
     private final ProductService productService;
+    private final GeneralMethos gM;
 
     /**
      * Get list of API products
@@ -56,7 +60,10 @@ public class ProductController {
      */
     @PostMapping("/add")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<?> createProduct(@RequestBody ProductDTO product) {
+    public ResponseEntity<?> createProduct(@Validated @RequestBody ProductDTO product, BindingResult bindingResult) {
+        ResponseEntity<?> errores = gM.validarErrores(bindingResult);
+        if (errores != null) return errores;
+
         return ResponseEntity.ok(productService.createProductMemory(product));
     }
 
@@ -65,7 +72,10 @@ public class ProductController {
      */
     @PutMapping("/update")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<?> updateProduct(@RequestBody ProductDTO product) {
+    public ResponseEntity<?> updateProduct(@Validated @RequestBody ProductDTO product, BindingResult bindingResult) {
+        ResponseEntity<?> errores = gM.validarErrores(bindingResult);
+        if (errores != null) return errores;
+
         return ResponseEntity.ok(productService.updateProductMemory(product));
     }
 
