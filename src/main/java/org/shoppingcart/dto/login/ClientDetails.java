@@ -1,6 +1,6 @@
 package org.shoppingcart.dto.login;
 
-import org.shoppingcart.dto.ClientDTO;
+import org.shoppingcart.dto.client.ClientDTO;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 

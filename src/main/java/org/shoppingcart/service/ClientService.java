@@ -3,11 +3,12 @@ package org.shoppingcart.service;
 import lombok.RequiredArgsConstructor;
 import org.shoppingcart.component.MemoryDB;
 import org.shoppingcart.config.Jwt.JwtService;
-import org.shoppingcart.dto.ClientDTO;
+import org.shoppingcart.dto.client.ClientDTO;
 import org.shoppingcart.dto.login.AuthResponse;
 import org.shoppingcart.dto.login.LoginRequest;
 import org.shoppingcart.exception.CustomException;
 import org.shoppingcart.exception.NotFoundException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,7 +28,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ClientService {
 
-
     private ClientDTO usuario;
     private final MemoryDB memoryDB;
     private final JwtService jwtService;
@@ -35,45 +35,64 @@ public class ClientService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
-
+    @Value("${external.api.fakestore.url}")
+    private String urlAPI;
 
     public List<ClientDTO> getClients() {
-        ResponseEntity<ClientDTO[]> response = restTemplate.getForEntity("https://fakestoreapi.com/users", ClientDTO[].class);
+        ResponseEntity<ClientDTO[]> response = restTemplate.getForEntity(urlAPI + "/users", ClientDTO[].class);
         ClientDTO[] clients = response.getBody();
 
         if (clients == null || clients.length == 0) {
+            // Throw custom exception if no clients are returned
             throw new NotFoundException("There are no clients/users available in API");
+        } else {
+            // Iterar sobre cada cliente y encriptar su contraseña
+            Arrays.stream(clients).forEach(clientDTO -> {
+                String rawPassword = clientDTO.getPassword();
+                if (rawPassword != null && !rawPassword.isBlank()) {
+                    // Password with its encrypted hash
+                    clientDTO.setPassword(passwordEncoder.encode(rawPassword));
+                }
+            });
         }
         return Arrays.asList(clients);
     }
 
-    public Collection<ClientDTO> getAllClientsMemory(){
+    public Collection<ClientDTO> getAllClientsMemory() {
         return memoryDB.getAllClients();
     }
 
-    public ClientDTO getClientById(Integer id){
+    public ClientDTO getClientById(Integer id) {
         try {
-            ResponseEntity<ClientDTO> response = restTemplate.getForEntity("https://fakestoreapi.com/users/" + id, ClientDTO.class);
+            ResponseEntity<ClientDTO> response = restTemplate.getForEntity(urlAPI + "/users/" + id, ClientDTO.class);
             ClientDTO client = response.getBody();
 
             if (client == null) {
                 throw new NotFoundException("Product with ID " + id + " not found");
+            } else {
+                client.setPassword(passwordEncoder.encode(client.getPassword()));
             }
+
             return client;
         } catch (HttpClientErrorException.NotFound e) {
             throw new NotFoundException("Product with ID " + id + " not found");
         }
     }
 
-    public ClientDTO findByNombre(String name){
+    public ClientDTO findByNombre(String name) {
         return memoryDB.getClientByName(name);
     }
 
-    public ClientDTO getClientByIdMemory(Integer id){
+    /**
+     * Get user in memory by ID
+     * @param id User ID
+     * @return response
+     */
+    public ClientDTO getClientByIdMemory(Integer id) {
         Optional<ClientDTO> client = memoryDB.getClientById(id);
-        if(client.isPresent()){
+        if (client.isPresent()) {
             return client.get();
-        }else {
+        } else {
             throw new NotFoundException("Client with ID " + id + " not found");
         }
     }
@@ -86,7 +105,7 @@ public class ClientService {
         }
 
         if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "The password does not match.");
+            throw new CustomException(HttpStatus.UNAUTHORIZED, "The password does not match.");
         }
 
         //authentication and return of user data

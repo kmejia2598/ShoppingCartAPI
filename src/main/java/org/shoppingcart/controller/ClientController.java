@@ -16,7 +16,7 @@ public class ClientController {
     private final ClientService clientService;
 
     /**
-     * Get the list of API clients https://fakestoreapi.com/
+     * Get the list of API clients External
      */
     @GetMapping("/all")
     public ResponseEntity<?> productList() {

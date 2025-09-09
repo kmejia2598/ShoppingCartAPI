@@ -1,10 +1,13 @@
 package org.shoppingcart.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.shoppingcart.dto.OrderDTO;
+import org.shoppingcart.dto.order.OrderDetailDTO;
 import org.shoppingcart.service.OrderService;
+import org.shoppingcart.utils.GeneralMethos;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderService orderService;
+    private final GeneralMethos gM;
 
     /**
      * Get list of Orders stored in memory
@@ -38,7 +42,10 @@ public class OrderController {
      */
     @PostMapping("/add/in-memory")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
-    public ResponseEntity<?> addOrderMemory(@RequestBody OrderDTO order) {
+    public ResponseEntity<?> addOrderMemory(@Validated  @RequestBody OrderDetailDTO order, BindingResult bindingResult) {
+        ResponseEntity<?> errores = gM.validarErrores(bindingResult);
+        if (errores != null) return errores;
+
         return ResponseEntity.ok(orderService.addOrderMemory(order));
     }
 }

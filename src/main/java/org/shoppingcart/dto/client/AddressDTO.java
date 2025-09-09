@@ -1,4 +1,4 @@
-package org.shoppingcart.dto;
+package org.shoppingcart.dto.client;
 
 import lombok.Data;
 

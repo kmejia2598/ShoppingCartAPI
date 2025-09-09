@@ -54,7 +54,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            sendErrorResponse(response, "Access denied");
+            String complement = "";
+            if(e.getCause() != null && e.getCause().getMessage() != null){
+                complement = e.getCause().getMessage();
+            }
+            sendErrorResponse(response, "Access denied - " + complement);
         }
 
         filterChain.doFilter(request, response);
