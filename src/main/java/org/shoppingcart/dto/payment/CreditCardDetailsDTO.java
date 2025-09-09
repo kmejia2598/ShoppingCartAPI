@@ -1,4 +1,4 @@
-package org.shoppingcart.dto.client;
+package org.shoppingcart.dto.payment;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;

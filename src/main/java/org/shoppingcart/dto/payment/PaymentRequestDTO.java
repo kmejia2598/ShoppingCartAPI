@@ -3,7 +3,6 @@ package org.shoppingcart.dto.payment;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
-import org.shoppingcart.dto.client.CreditCardDetailsDTO;
 
 @Data
 public class PaymentRequestDTO {

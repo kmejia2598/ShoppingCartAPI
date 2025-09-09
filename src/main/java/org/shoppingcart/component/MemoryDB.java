@@ -3,7 +3,7 @@ package org.shoppingcart.component;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.shoppingcart.dto.client.ClientDTO;
-import org.shoppingcart.dto.client.CreditCardDetailsDTO;
+import org.shoppingcart.dto.payment.CreditCardDetailsDTO;
 import org.shoppingcart.dto.login.Role;
 import org.shoppingcart.dto.order.OrderDTO;
 import org.shoppingcart.dto.order.OrderDetailDTO;
